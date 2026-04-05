@@ -1,0 +1,45 @@
+services: # 1. Список всех программ, которые нам нужны (у нас пока только БД)
+
+# сервис базы данных в докере
+  db:     # 2. Техническое имя сервиса внутри Docker-сети
+    image: postgres:17-alpine # 3. Образ (дистрибутив) Postgres 18 версии на базе легкой ОС Alpine
+    container_name: itk-project-db # 4. Имя, которое ты увидишь в списке запущенных контейнеров
+    restart: always # 5. Если база упадет или комп перезагрузится, Docker сам её поднимет
+    env_file:
+      - .env
+
+    environment: # 6. Переменные окружения внутри контейнера
+      POSTGRES_USER: ${DB_USER}     # Берет логин из твоего .env
+      POSTGRES_PASSWORD: ${DB_PASSWORD} # Берет пароль из твоего .env
+      POSTGRES_DB: ${DB_NAME}       # Берет имя базы из твоего .env
+
+    ports: # 7. Проброс портов (Внешний:Внутренний)
+      - "${DB_PORT}:5432" # Мы говорим: "Стук в порт 5432 на моем компе направляй в порт 5432 внутри контейнера"
+
+    healthcheck: # 8. "Проверка пульса" базы
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"] # Команда проверяет, готова ли база принимать запросы
+      interval: 5s  # Проверять каждые 5 секунд
+      timeout: 5s   # Ждать ответа не дольше 5 секунд
+      retries: 5    # Если 5 раз подряд ошибка — база считается "больной" (unhealthy)
+
+    volumes: # 9. Постоянное хранилище
+      - itk-project-data:/var/lib/postgresql/data # "Привязываем" папку внутри контейнера к нашей "виртуальной флешке"
+
+  app:
+      build: . # Docker найдет твой Dockerfile в текущей папке и соберет образ
+      container_name: itk-project-app
+      restart: always
+      env_file:
+        - .env
+      environment:
+        - DB_HOST=db # ВАЖНО: внутри сети Docker хост базы — это имя сервиса "db"
+      ports:
+        - "8000:8000" # Твой FastAPI будет доступен на http://localhost:8000
+      volumes:
+            - .:/app  # Твой код с компа "пробрасывается" прямо в контейнер
+      depends_on:
+        db:
+          condition: service_healthy # Приложение запустится ТОЛЬКО когда база пройдет healthcheck  
+
+volumes: # 10. Объявление тех самых "виртуальных флешек"
+  itk-project-data: # Эта флешка не удалится, даже если ты удалишь сам контейнер с базой
