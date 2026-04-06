@@ -1,9 +1,10 @@
 from logging.config import fileConfig
 
 from alembic import context
-from app.database import DB_URL
-from app.models import Base, Wallet # noqa
 from sqlalchemy import engine_from_config, pool
+
+from app.database import DB_URL
+from app.models import Base, Wallet  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -52,35 +53,10 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-# def run_migrations_online() -> None:
-#     """Run migrations in 'online' mode.
-
-#     In this scenario we need to create an Engine
-#     and associate a connection with the context.
-
-#     """
-#     connectable = engine_from_config(
-#         config.get_section(config.config_ini_section, {}),
-#         prefix="sqlalchemy.",
-#         poolclass=pool.NullPool,
-#     )
-
-#     with connectable.connect() as connection:
-#         context.configure(
-#             connection=connection,
-#             target_metadata=target_metadata,
-#             compare_server_default=True,
-#         )
-
-#         with context.begin_transaction():
-#             context.run_migrations()
-
 def run_migrations_online() -> None:
-    # 1. Проверяем, не передали ли мы уже готовое соединение из conftest.py
     connectable = config.attributes.get("connection", None)
 
     if connectable is None:
-        # Если соединения нет (обычный запуск), создаем новое как раньше
         connectable = engine_from_config(
             config.get_section(config.config_ini_section, {}),
             prefix="sqlalchemy.",
@@ -90,7 +66,6 @@ def run_migrations_online() -> None:
         with connectable.connect() as connection:
             do_run_migrations(connection)
     else:
-        # Если соединение есть (тесты), используем его напрямую
         do_run_migrations(connectable)
 
 def do_run_migrations(connection):

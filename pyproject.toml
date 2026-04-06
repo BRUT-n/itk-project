@@ -25,18 +25,26 @@ dev = [
     "httpx>=0.27.0",
 ]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-src = ["app"]
-lint.select = ["E", "F", "I", "N", "UP", "B"] 
+src = ["app", "tests"]
+lint.select = ["E", "F", "I", "N", "UP", "B"]
 lint.ignore = ["B008"]
-# E, F - ошибки и стиль, I - сортировка импортов, N - нейминг, UP - апгрейд синтаксиса, B - баги
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
 
 [tool.pyright]
 include = ["app"]
 exclude = ["**/node_modules", "**/__pycache__", ".venv", "migrations"]
-typeCheckingMode = "basic" # Для начала "basic", чтобы не сойти с ума от строгости
+typeCheckingMode = "basic" 
 pythonVersion = "3.12"
-venvPath = "."       # Искать папку с окружением в текущем корне
-venv = ".venv"       # Имя самой папки окружения
+venvPath = "."       
+venv = ".venv"       

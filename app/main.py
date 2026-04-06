@@ -11,21 +11,14 @@ from app.models import Base, Wallet
 from app.schemas import OperationType, WalletResponse
 
 
-# 1. Описываем логику "Жизненного цикла"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Код здесь выполнится ПРИ СТАРТЕ
     async with engine.begin() as conn:
-        # Создаем таблицы, если их нет
         await conn.run_sync(Base.metadata.create_all)
 
-    yield  # В этот момент приложение работает и принимает запросы
-
-    # Код здесь выполнится ПРИ ВЫКЛЮЧЕНИИ (например, закрытие пула БД)
-    await engine.dispose()
+    yield
 
 
-# 2. Передаем lifespan в инициализацию FastAPI
 app = FastAPI(title="Wallet FastAPI", lifespan=lifespan)
 
 
@@ -44,16 +37,15 @@ async def validate_wallet_exists(wallet_uuid: UUID, session: AsyncSession) -> Wa
     tags=["Кошелек"],
     summary="Вывести текущий баланс",
     status_code=status.HTTP_200_OK,
-    # response_model=WalletResponse, # если обрать функцию гет можно юзать ответ этот
+    response_model=WalletResponse,
 )
 async def get_balance_endpoint(
     wallet_uuid: UUID,
     session: AsyncSession = Depends(get_db),
 ):
-
     wallet = await validate_wallet_exists(wallet_uuid=wallet_uuid, session=session)
 
-    return wallet  # НЕОБХОДИМО ПРОВЕРИТЬ ВЫВОД В СВАГЕРЕ
+    return wallet
 
 
 @app.post(
@@ -69,21 +61,20 @@ async def wallet_operation_endpoint(
     amount: Decimal = Query(gt=0, examples=[1000]),
     session: AsyncSession = Depends(get_db),
 ):
-    async with session.begin():
-        wallet = await validate_wallet_exists(wallet_uuid=wallet_uuid, session=session)
+    wallet = await validate_wallet_exists(wallet_uuid=wallet_uuid, session=session)
 
-        result = await crud.wallet_operation(
-            operation=operation,
-            amount=amount,
-            wallet=wallet,
-            session=session,
+    result = await crud.wallet_operation(
+        operation=operation,
+        amount=amount,
+        wallet=wallet,
+        session=session,
+    )
+
+    if result is False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient funds"
         )
-
-        if result is False:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient funds"
-            )
-        return result
+    return result
 
 
 # ОТЛАДКА

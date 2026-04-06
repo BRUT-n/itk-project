@@ -9,7 +9,7 @@ class WalletResponse(BaseModel):
     id: UUID
     balance: Decimal = Field(max_digits=20, decimal_places=2)
 
-    model_config = ConfigDict(from_attributes=True)  # проверить можно ли убрать
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OperationType(StrEnum):
