@@ -1,22 +1,21 @@
-from decimal import Decimal
-from os import login_tty
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from uuid import UUID
-from app.models import Wallet
-from app.schemas import OperationType, WalletOperation, WalletResponse
 import logging
+from decimal import Decimal
+from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models import Wallet
+from app.schemas import OperationType
 
 logger = logging.getLogger(__name__)
 
 
-async def get_wallet_by_id(
-    wallet_id: UUID,
-    session: AsyncSession
-)-> Wallet | None:
-    query = select(Wallet).where(Wallet.id==wallet_id).with_for_update()
+async def get_wallet_by_id(wallet_id: UUID, session: AsyncSession) -> Wallet | None:
+    query = select(Wallet).where(Wallet.id == wallet_id).with_for_update()
     result = await session.execute(query)
     return result.scalar_one_or_none()
+
 
 # async def get_balance(
 #     wallet_uuid: UUID,
@@ -52,13 +51,15 @@ async def wallet_operation(
         await session.rollback()
         logging.error(f"Database error: {e}")
         raise
-    
+
     return wallet
+
 
 # ОТЛАДКА
 async def get_all_wallets(session: AsyncSession):
     """Получить список всех кошельков из базы"""
     query = select(Wallet)
     result = await session.execute(query)
-    return result.scalars().all() # .scalars().all() превращает результат в список объектов Wallet
-
+    return (
+        result.scalars().all()
+    )  # .scalars().all() превращает результат в список объектов Wallet

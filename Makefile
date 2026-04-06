@@ -2,11 +2,11 @@
 
 # Запуск всего проекта в докере
 run:
-	docker-compose up --build
+	docker compose up --build
 
 # Остановка и удаление контейнеров
 stop:
-	docker-compose down
+	docker compose down
 
 # Проверка стиля и ошибок (линтер)
 lint:
@@ -23,4 +23,7 @@ check: format lint
 
 # Заглушка для тестов (настроим позже)
 test:
-	uv run pytest tests/
+	POSTGRES_DB=test_db uv run pytest tests/
+
+test-clean:
+	docker stop $$(docker ps -q --filter ancestor=postgres:17-alpine) || true

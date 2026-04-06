@@ -8,6 +8,7 @@ dependencies = [
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
     "fastapi>=0.135.2",
+    "psycopg2-binary>=2.9.11",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.2",
     "sqlalchemy>=2.0.48",
@@ -29,6 +30,7 @@ line-length = 88
 target-version = "py312"
 src = ["app"]
 lint.select = ["E", "F", "I", "N", "UP", "B"] 
+lint.ignore = ["B008"]
 # E, F - ошибки и стиль, I - сортировка импортов, N - нейминг, UP - апгрейд синтаксиса, B - баги
 
 [tool.pyright]
@@ -36,6 +38,5 @@ include = ["app"]
 exclude = ["**/node_modules", "**/__pycache__", ".venv", "migrations"]
 typeCheckingMode = "basic" # Для начала "basic", чтобы не сойти с ума от строгости
 pythonVersion = "3.12"
-
 venvPath = "."       # Искать папку с окружением в текущем корне
 venv = ".venv"       # Имя самой папки окружения
