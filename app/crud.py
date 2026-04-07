@@ -41,13 +41,3 @@ async def wallet_operation(
         raise
 
     return wallet
-
-
-# ОТЛАДКА
-async def get_all_wallets(session: AsyncSession):
-    """Получить список всех кошельков из базы"""
-    query = select(Wallet)
-    result = await session.execute(query)
-    return (
-        result.scalars().all()
-    )

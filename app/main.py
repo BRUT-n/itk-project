@@ -75,25 +75,3 @@ async def wallet_operation_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient funds"
         )
     return result
-
-
-# ОТЛАДКА
-@app.get(
-    "/api/v1/wallets",
-    tags=["Кошелек"],
-    summary="Посмотреть все кошельки в БД",
-    response_model=list[WalletResponse],
-)
-async def list_wallets(session: AsyncSession = Depends(get_db)):
-    wallets = await crud.get_all_wallets(session=session)
-    return wallets
-
-
-# ОТЛАДКА
-@app.post("/api/v1/wallets", tags=["Кошелек"], summary="Создать новый кошелек")
-async def create_new_wallet(session: AsyncSession = Depends(get_db)):
-    new_wallet = Wallet()  # Создаем объект (ID и баланс подставятся автоматом)
-    session.add(new_wallet)
-    await session.commit()
-    await session.refresh(new_wallet)
-    return new_wallet
